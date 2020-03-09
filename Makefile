@@ -1,23 +1,7 @@
-TARGETS := $(shell ls scripts)
+IMAGE_NAME  ?= inercia/klipper-lb
+IMAGE_TAG   ?= latest
 
-.dapper:
-	@echo Downloading dapper
-	@curl -sL https://releases.rancher.com/dapper/latest/dapper-`uname -s`-`uname -m` > .dapper.tmp
-	@@chmod +x .dapper.tmp
-	@./.dapper.tmp -v
-	@mv .dapper.tmp .dapper
+all:
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
-$(TARGETS): .dapper
-	./.dapper $@
-
-trash: .dapper
-	./.dapper -m bind trash
-
-trash-keep: .dapper
-	./.dapper -m bind trash -k
-
-deps: trash
-
-.DEFAULT_GOAL := ci
-
-.PHONY: $(TARGETS)
+.DEFAULT_GOAL := all

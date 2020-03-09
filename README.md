@@ -11,17 +11,23 @@ will stay in pending.
 
 `make`
 
-## License
-Copyright (c) 2019 [Rancher Labs, Inc.](http://rancher.com)
+## Using
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+* Load the `DaemonSet` manifest in the Kubernetes cluster:
+  ```shell script
+  kubectl apply -f https://raw.githubusercontent.com/inercia/klipper-lb/master/klipper.yaml
+  ```
+* Install your Ingress solution. For example, you can install Ambassador in the
+  cluster by following [the instructions](https://www.getambassador.io/user-guide/install/),
+  with,
+  ```shell script
+  edgectl install
+  ```
+* Set the destination for the load balancer be either setting the DNS name or the serfvice IP,
+  like
+  ```shell script
+  kubectl set env daemonset -n kube-system svclb-klipper DEST_ADDR="ambassador.ambassador"
+  ```
+  (assuming you `ambassador` service  is installed ihn the `ambassador` namespace).
+* At this moment, you can access any node in your cluster at port 80 or 443 and it will
+  take you to your Ingress.
