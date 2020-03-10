@@ -29,14 +29,26 @@ if [ -z "$DEST_IP" ] ; then
         echo "DEST_ADDR resolves to $DEST_IP"
     else
         echo "DEST_IP or DEST_ADDR must be set. For example:"
-        echo "kubectl set env daemonset klipper-lp DEST_ADDR=ambassador"
+        echo "kubectl set env daemonset -n kube-system svclb-klipper DEST_ADDR=ambassador.ambassador"
         while /bin/true; do sleep 1 ; done
     fi
 fi
 
+# TODO: we should check that the service is a LoadBalancer
+
 echo "Mapping ${SRC_PORT} -> ${DEST_IP}:${DEST_PORT}"
 iptables -t nat -I PREROUTING ! -s ${DEST_IP}/32 -p ${DEST_PROTO} --dport ${SRC_PORT} -j DNAT --to ${DEST_IP}:${DEST_PORT}
 iptables -t nat -I POSTROUTING -d ${DEST_IP}/32 -p ${DEST_PROTO} -j MASQUERADE
+
+if [ -n "$DEST_ADDR" ] ; then
+    node_ip=$(kubectl get nodes -o jsonpath='{ $.items[*].status.addresses[].address }')
+    service_name=$(echo $DEST_ADDR | cut -s -d'.' -f1)
+    service_namespace=$(echo $DEST_ADDR | cut -s -d'.' -f2)
+    [ -n "$service_namespace" ] || service_namespace="default"
+
+    echo "Patching service ${service_name} (at ${service_namespace}) with externalIPs:${node_ip}"
+    kubectl patch svc $service_name -n $service_namespace -p '{"spec": {"externalIPs":["'$node_ip'"]}}'
+fi
 
 if [ ! -e /pause ]; then
     mkfifo /pause

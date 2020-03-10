@@ -17,17 +17,18 @@ will stay in pending.
   ```shell script
   kubectl apply -f https://raw.githubusercontent.com/inercia/klipper-lb/master/klipper.yaml
   ```
-* Install your Ingress solution. For example, you can install Ambassador in the
-  cluster by following [the instructions](https://www.getambassador.io/user-guide/install/),
-  with,
-  ```shell script
-  edgectl install
-  ```
 * Set the destination for the load balancer be either setting the DNS name or the serfvice IP,
   like
   ```shell script
   kubectl set env daemonset -n kube-system svclb-klipper DEST_ADDR="ambassador.ambassador"
+  kubectl rollout restart -n kube-system daemonset svclb-klipper
   ```
-  (assuming you `ambassador` service  is installed ihn the `ambassador` namespace).
+  (assuming you `ambassador` service  will be installed in the `ambassador` namespace).
+* Install your Ingress, in this example, Ambassador.
+  Following [these instructions](https://www.getambassador.io/user-guide/install/),
+  installing with
+  ```shell script
+  edgectl install
+  ```
 * At this moment, you can access any node in your cluster at port 80 or 443 and it will
   take you to your Ingress.
